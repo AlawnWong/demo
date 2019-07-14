@@ -45,4 +45,21 @@ func main() {
 		fmt.Println("key2", val2)
 	}
 
+	res := client.Del("name")
+	fmt.Println("delete name result = ", res)
+
+	val3, err := client.Get("name").Result()
+	if err == redis.Nil {
+		fmt.Println("name does not exist")
+	} else if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("name", val3)
+	}
+
+	res = client.Del("key2")
+	fmt.Println("delete key2 result = ", res)
+
+
+
 }
