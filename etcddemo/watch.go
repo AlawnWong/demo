@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"context"
 	"fmt"
@@ -39,6 +38,7 @@ func main() {
 	go func() {
 		for {
 			kv.Put(context.TODO(), "/cron/jobs/job7", "i am job7")
+			time.Sleep(1 * time.Second)
 			kv.Delete(context.TODO(), "/cron/jobs/job7")
 			time.Sleep(1 * time.Second)
 		}
@@ -55,11 +55,11 @@ func main() {
 	watchStartRevision = getResp.Header.Revision + 1
 
 	watcher = clientv3.NewWatcher(client)
-	fmt.Println("从该版本向后监听", watchStartRevision)
+	fmt.Println("从该版本向后监听 Revision = ", watchStartRevision)
 
 	ctx, cancelFunc = context.WithCancel(context.TODO())
 	watchRespChan = watcher.Watch(ctx, "/cron/jobs/job7", clientv3.WithRev(watchStartRevision))
-	time.AfterFunc(5*time.Second, func() {
+	time.AfterFunc(10*time.Second, func() {
 		cancelFunc()
 	})
 
@@ -67,9 +67,9 @@ func main() {
 		for _, event := range watchResp.Events {
 			switch event.Type {
 			case mvccpb.PUT:
-				fmt.Println("修改为：", string(event.Kv.Value), "Revision：", event.Kv.CreateRevision, event.Kv.ModRevision)
+				fmt.Println("watch - 修改为：", string(event.Kv.Value), "Revision：", event.Kv.CreateRevision, event.Kv.ModRevision)
 			case mvccpb.DELETE:
-				fmt.Println("删除了", event.Kv.ModRevision)
+				fmt.Println("watch - 删除了", event.Kv.ModRevision)
 			}
 		}
 	}
